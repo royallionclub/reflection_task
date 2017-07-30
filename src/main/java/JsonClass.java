@@ -38,7 +38,7 @@ public class JsonClass {
                 } else {
                     map.put(field.getName(), field.get(object));
                 }
-                field.setAccessible(true);
+                field.setAccessible(false);
             }
         }
     }
