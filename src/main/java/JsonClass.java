@@ -11,44 +11,38 @@ import java.util.Map;
 
 public class JsonClass {
 
-    public static Map<String, Object> map = new HashMap<>();
-
 
     public static String toJson(Object object) throws IllegalAccessException, IllegalArgumentException {
-        checkAnnotationChangeField(object);
-        String s = createString();
-        map.clear();
+        String s = checkAnnotationChangeFieldCreateString(object);
         return s;
     }
 
-    public static void checkAnnotationChangeField(Object object) throws IllegalAccessException {
+    public static String checkAnnotationChangeFieldCreateString(Object object) throws IllegalAccessException {
         Class clazz = object.getClass();
         Field[] fields = clazz.getDeclaredFields();
+        Map<String, Object> mapFields = new HashMap<>();
         for (Field field : fields) {
             field.setAccessible(true);
             if (field.get(object) != null) {
                 if (field.isAnnotationPresent(JsonValue.class)) {
                     String newFieldName = field.getAnnotation(JsonValue.class).name();
-                    map.put(newFieldName, field.get(object));
+                    mapFields.put(newFieldName, field.get(object));
                 } else if (field.isAnnotationPresent(CustomDateFormat.class)) {
                     DateTimeFormatter formatter =
                             DateTimeFormatter.ofPattern(field.getAnnotation(CustomDateFormat.class).format());
                     LocalDate o = (LocalDate) field.get(object);
-                    map.put(field.getName(), o.format(formatter));
+                    mapFields.put(field.getName(), o.format(formatter));
                 } else {
-                    map.put(field.getName(), field.get(object));
+                    mapFields.put(field.getName(), field.get(object));
                 }
                 field.setAccessible(false);
             }
         }
-    }
 
-
-    public static String createString() throws IllegalAccessException {
         StringBuilder stringBuilder = new StringBuilder();
-        int count = map.size();
+        int count = mapFields.size();
         stringBuilder.append("{");
-        for (Map.Entry<String, Object> stringObjectEntry : map.entrySet()) {
+        for (Map.Entry<String, Object> stringObjectEntry : mapFields.entrySet()) {
             stringBuilder.append("\"")
                     .append(stringObjectEntry.getKey())
                     .append("\":\"")
@@ -58,6 +52,7 @@ public class JsonClass {
             count--;
         }
         return String.valueOf(stringBuilder);
+
     }
 
 }
